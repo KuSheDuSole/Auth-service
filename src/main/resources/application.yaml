@@ -16,6 +16,13 @@ spring:
         default_schema: auth
 
 app:
+  jwt:
+    private-key: ${JWT_PRIVATE_KEY}
+    public-key: ${JWT_PUBLIC_KEY}
+    issuer: dekanat-auth
+    access-token-ttl: 15m
+    refresh-token-ttl: 1d
+    remember-me-refresh-token-ttl: 30d
   admin:
     email: ${ADMIN_EMAIL}
     password: ${ADMIN_PASSWORD}
