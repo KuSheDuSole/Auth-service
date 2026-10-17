@@ -29,8 +29,8 @@ public class GatewayHeadersAuthenticationFilter extends OncePerRequestFilter {
 
         if (userId != null && role != null) {
             try {
-                var user = new CurrentUser(Long.valueOf(userId), Role.valueOf(role));
-                var authentication = UsernamePasswordAuthenticationToken.authenticated(
+                CurrentUser user = new CurrentUser(Long.valueOf(userId), Role.valueOf(role));
+                UsernamePasswordAuthenticationToken authentication = UsernamePasswordAuthenticationToken.authenticated(
                         user, null, List.of(new SimpleGrantedAuthority("ROLE_" + user.role().name())));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } catch (IllegalArgumentException e) {

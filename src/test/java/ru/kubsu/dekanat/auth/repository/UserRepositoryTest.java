@@ -9,6 +9,8 @@ import ru.kubsu.dekanat.auth.TestcontainersConfiguration;
 import ru.kubsu.dekanat.auth.entity.Role;
 import ru.kubsu.dekanat.auth.entity.User;
 
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -23,7 +25,7 @@ class UserRepositoryTest {
     void savesUserAndFindsByEmail() {
         userRepository.saveAndFlush(newUser("ivanov@kubsu.ru"));
 
-        var found = userRepository.findByEmail("ivanov@kubsu.ru");
+        Optional<User> found = userRepository.findByEmail("ivanov@kubsu.ru");
 
         assertThat(found).isPresent();
         assertThat(found.get().getId()).isNotNull();
@@ -55,7 +57,7 @@ class UserRepositoryTest {
     }
 
     private static User newUser(String email) {
-        var user = new User();
+        User user = new User();
         user.setEmail(email);
         user.setPasswordHash("hash");
         user.setFirstName("Иван");

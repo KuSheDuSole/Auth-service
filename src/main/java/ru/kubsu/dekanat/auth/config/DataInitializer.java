@@ -38,7 +38,7 @@ public class DataInitializer implements ApplicationRunner {
             return;
         }
 
-        var admin = new User();
+        User admin = new User();
         admin.setEmail(email);
         admin.setPasswordHash(passwordEncoder.encode(adminProperties.password()));
         admin.setFirstName(adminProperties.firstName());
