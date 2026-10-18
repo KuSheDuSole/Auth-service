@@ -11,9 +11,11 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import ru.kubsu.dekanat.auth.dto.CreateUserRequest;
+import ru.kubsu.dekanat.auth.dto.UpdateProfileRequest;
 import ru.kubsu.dekanat.auth.dto.UpdateUserRequest;
 import ru.kubsu.dekanat.auth.entity.Role;
 import ru.kubsu.dekanat.auth.exception.EmailAlreadyExistsException;
+import ru.kubsu.dekanat.auth.exception.InvalidCurrentPasswordException;
 import ru.kubsu.dekanat.auth.exception.UserNotFoundException;
 import ru.kubsu.dekanat.auth.entity.User;
 import ru.kubsu.dekanat.auth.repository.UserRepository;
@@ -93,6 +95,23 @@ public class UserService {
         }
 
         return user;
+    }
+
+    @Transactional
+    public User updateProfile(Long id, UpdateProfileRequest request) {
+        User user = getById(id);
+        if (request.firstName() != null) user.setFirstName(request.firstName().trim());
+        if (request.lastName() != null) user.setLastName(request.lastName().trim());
+        return user;
+    }
+
+    @Transactional
+    public void changeOwnPassword(Long id, String currentPassword, String newPassword) {
+        User user = getById(id);
+        if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
+            throw new InvalidCurrentPasswordException();
+        }
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
     }
 
     @Transactional

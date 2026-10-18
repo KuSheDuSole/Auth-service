@@ -19,11 +19,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import ru.kubsu.dekanat.auth.dto.ChangePasswordRequest;
 import ru.kubsu.dekanat.auth.dto.ChangeRoleRequest;
 import ru.kubsu.dekanat.auth.dto.CreateUserRequest;
 import ru.kubsu.dekanat.auth.dto.EmployeeResponse;
 import ru.kubsu.dekanat.auth.dto.PageResponse;
 import ru.kubsu.dekanat.auth.dto.SetPasswordRequest;
+import ru.kubsu.dekanat.auth.dto.UpdateProfileRequest;
 import ru.kubsu.dekanat.auth.dto.UpdateUserRequest;
 import ru.kubsu.dekanat.auth.dto.UserResponse;
 import ru.kubsu.dekanat.auth.entity.User;
@@ -41,6 +43,20 @@ public class UserController {
     public UserResponse me(@AuthenticationPrincipal CurrentUser currentUser) {
         User user = userService.getById(currentUser.id());
         return new UserResponse(EmployeeResponse.from(user));
+    }
+
+    @PatchMapping("/me")
+    public UserResponse updateMe(@Valid @RequestBody UpdateProfileRequest request,
+                                 @AuthenticationPrincipal CurrentUser currentUser) {
+        User user = userService.updateProfile(currentUser.id(), request);
+        return new UserResponse(EmployeeResponse.from(user));
+    }
+
+    @PutMapping("/me/password")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void changeMyPassword(@Valid @RequestBody ChangePasswordRequest request,
+                                 @AuthenticationPrincipal CurrentUser currentUser) {
+        userService.changeOwnPassword(currentUser.id(), request.currentPassword(), request.newPassword());
     }
 
     @GetMapping
