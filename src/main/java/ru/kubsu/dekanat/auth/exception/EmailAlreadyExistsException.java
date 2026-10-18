@@ -1,4 +1,4 @@
-package ru.kubsu.dekanat.auth.service;
+package ru.kubsu.dekanat.auth.exception;
 
 public class EmailAlreadyExistsException extends RuntimeException {
 

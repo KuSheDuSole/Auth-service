@@ -12,6 +12,7 @@ import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.stereotype.Service;
 import ru.kubsu.dekanat.auth.config.JwtProperties;
 import ru.kubsu.dekanat.auth.entity.User;
+import ru.kubsu.dekanat.auth.exception.InvalidRefreshTokenException;
 import ru.kubsu.dekanat.auth.repository.UserRepository;
 import ru.kubsu.dekanat.auth.security.AppUserDetails;
 
