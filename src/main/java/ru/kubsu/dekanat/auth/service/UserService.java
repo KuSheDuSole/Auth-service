@@ -11,6 +11,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import ru.kubsu.dekanat.auth.dto.CreateUserRequest;
+import ru.kubsu.dekanat.auth.dto.UpdateUserRequest;
 import ru.kubsu.dekanat.auth.entity.Role;
 import ru.kubsu.dekanat.auth.exception.EmailAlreadyExistsException;
 import ru.kubsu.dekanat.auth.exception.UserNotFoundException;
@@ -65,6 +66,36 @@ public class UserService {
     }
 
     @Transactional
+    public User update(Long id, UpdateUserRequest request, CurrentUser actor) {
+        User user = getById(id);
+        checkCanManage(actor, user);
+
+        if (request.isActive() != null) {
+            if (user.getRole() == Role.SUPER_ADMIN && !request.isActive()) {
+                throw new AccessDeniedException("Супер-админа нельзя заблокировать");
+            }
+            user.setActive(request.isActive());
+        }
+        if (request.firstName() != null) user.setFirstName(request.firstName().trim());
+        if (request.lastName() != null) user.setLastName(request.lastName().trim());
+
+        if (request.email() != null) {
+            String email = request.email().trim().toLowerCase();
+            if (!email.equals(user.getEmail())) {
+                if (userRepository.existsByEmail(email)) throw new EmailAlreadyExistsException(email);
+                user.setEmail(email);
+                try {
+                    userRepository.flush();
+                } catch (DataIntegrityViolationException e) {
+                    throw new EmailAlreadyExistsException(email);
+                }
+            }
+        }
+
+        return user;
+    }
+
+    @Transactional
     public User changeRole(Long id, boolean isAdmin) {
         User user = getById(id);
         if (user.getRole() == Role.SUPER_ADMIN) {
@@ -72,6 +103,17 @@ public class UserService {
         }
         user.setRole(isAdmin ? Role.ADMIN : Role.USER);
         return user;
+    }
+
+    private void checkCanManage(CurrentUser actor, User target) {
+        boolean allowed = switch (target.getRole()) {
+            case USER -> true;
+            case ADMIN -> actor.role() == Role.SUPER_ADMIN;
+            case SUPER_ADMIN -> target.getId().equals(actor.id());
+        };
+        if (!allowed) {
+            throw new AccessDeniedException("Недостаточно прав для управления этим пользователем");
+        }
     }
 
 }

@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -21,6 +22,7 @@ import ru.kubsu.dekanat.auth.dto.ChangeRoleRequest;
 import ru.kubsu.dekanat.auth.dto.CreateUserRequest;
 import ru.kubsu.dekanat.auth.dto.EmployeeResponse;
 import ru.kubsu.dekanat.auth.dto.PageResponse;
+import ru.kubsu.dekanat.auth.dto.UpdateUserRequest;
 import ru.kubsu.dekanat.auth.dto.UserResponse;
 import ru.kubsu.dekanat.auth.entity.User;
 import ru.kubsu.dekanat.auth.security.CurrentUser;
@@ -61,6 +63,14 @@ public class UserController {
     public UserResponse create(@Valid @RequestBody CreateUserRequest request,
                                @AuthenticationPrincipal CurrentUser currentUser) {
         User user = userService.create(request, currentUser);
+        return new UserResponse(EmployeeResponse.from(user));
+    }
+
+    @PatchMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public UserResponse update(@PathVariable Long id, @Valid @RequestBody UpdateUserRequest request,
+                               @AuthenticationPrincipal CurrentUser currentUser) {
+        User user = userService.update(id, request, currentUser);
         return new UserResponse(EmployeeResponse.from(user));
     }
 
