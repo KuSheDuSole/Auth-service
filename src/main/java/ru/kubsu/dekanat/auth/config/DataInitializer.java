@@ -25,16 +25,16 @@ public class DataInitializer implements ApplicationRunner {
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
-        if (userRepository.existsByRole(Role.ADMIN)) return;
+        if (userRepository.existsByRole(Role.SUPER_ADMIN)) return;
 
         if (adminProperties.password() == null || adminProperties.password().isBlank()) {
-            log.warn("В БД нет администратора, но ADMIN_PASSWORD не задан — администратор не создан");
+            log.warn("В БД нет супер-админа, но ADMIN_PASSWORD не задан — супер-админ не создан");
             return;
         }
 
         String email = adminProperties.email().trim().toLowerCase();
         if (userRepository.existsByEmail(email)) {
-            log.warn("Пользователь {} уже существует, но не является администратором — администратор не создан", email);
+            log.warn("Пользователь {} уже существует, но не является супер-админом — супер-админ не создан", email);
             return;
         }
 
@@ -43,10 +43,10 @@ public class DataInitializer implements ApplicationRunner {
         admin.setPasswordHash(passwordEncoder.encode(adminProperties.password()));
         admin.setFirstName(adminProperties.firstName());
         admin.setLastName(adminProperties.lastName());
-        admin.setRole(Role.ADMIN);
+        admin.setRole(Role.SUPER_ADMIN);
         userRepository.save(admin);
 
-        log.info("Создан администратор {}", email);
+        log.info("Создан супер-админ {}", email);
     }
 
 }

@@ -9,7 +9,8 @@ public record EmployeeResponse(
         String lastName,
         String email,
         boolean isActive,
-        boolean isAdmin
+        boolean isAdmin,
+        boolean isSuperAdmin
 ) {
 
     public static EmployeeResponse from(User user) {
@@ -19,7 +20,8 @@ public record EmployeeResponse(
                 user.getLastName(),
                 user.getEmail(),
                 user.isActive(),
-                user.getRole() == Role.ADMIN);
+                user.getRole() != Role.USER,
+                user.getRole() == Role.SUPER_ADMIN);
     }
 
 }

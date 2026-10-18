@@ -11,11 +11,13 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import ru.kubsu.dekanat.auth.dto.ChangeRoleRequest;
 import ru.kubsu.dekanat.auth.dto.CreateUserRequest;
 import ru.kubsu.dekanat.auth.dto.EmployeeResponse;
 import ru.kubsu.dekanat.auth.dto.PageResponse;
@@ -56,8 +58,16 @@ public class UserController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasRole('ADMIN')")
-    public UserResponse create(@Valid @RequestBody CreateUserRequest request) {
-        User user = userService.create(request);
+    public UserResponse create(@Valid @RequestBody CreateUserRequest request,
+                               @AuthenticationPrincipal CurrentUser currentUser) {
+        User user = userService.create(request, currentUser);
+        return new UserResponse(EmployeeResponse.from(user));
+    }
+
+    @PutMapping("/{id}/role")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public UserResponse changeRole(@PathVariable Long id, @Valid @RequestBody ChangeRoleRequest request) {
+        User user = userService.changeRole(id, request.isAdmin());
         return new UserResponse(EmployeeResponse.from(user));
     }
 

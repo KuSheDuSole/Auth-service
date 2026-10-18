@@ -7,9 +7,9 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
-import ru.kubsu.dekanat.auth.service.EmailAlreadyExistsException;
-import ru.kubsu.dekanat.auth.service.InvalidRefreshTokenException;
-import ru.kubsu.dekanat.auth.service.UserNotFoundException;
+import ru.kubsu.dekanat.auth.exception.EmailAlreadyExistsException;
+import ru.kubsu.dekanat.auth.exception.InvalidRefreshTokenException;
+import ru.kubsu.dekanat.auth.exception.UserNotFoundException;
 
 
 @RestControllerAdvice
