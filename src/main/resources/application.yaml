@@ -10,10 +10,24 @@ spring:
   jpa:
     open-in-view: false
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     properties:
       hibernate:
         default_schema: auth
+  mail:
+    host: smtp.mail.ru
+    port: 465
+    username: ${EMAIL}
+    password: ${APPLICATION_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
 
 app:
   jwt:
@@ -23,6 +37,12 @@ app:
     access-token-ttl: 15m
     refresh-token-ttl: 1d
     remember-me-refresh-token-ttl: 30d
+  password-reset:
+    url: ${FRONTEND_URL:http://localhost:5173}/reset-password
+    token-ttl: 30m
+  email-change:
+    code-ttl: 15m
+    max-attempts: 5
   admin:
     email: ${ADMIN_EMAIL}
     password: ${ADMIN_PASSWORD}
