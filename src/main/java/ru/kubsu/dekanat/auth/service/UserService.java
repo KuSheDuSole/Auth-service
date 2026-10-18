@@ -29,6 +29,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final TokenRevocationService tokenRevocationService;
 
     @Transactional(readOnly = true)
     public User getById(Long id) {
@@ -76,6 +77,7 @@ public class UserService {
             if (user.getRole() == Role.SUPER_ADMIN && !request.isActive()) {
                 throw new AccessDeniedException("Супер-админа нельзя заблокировать");
             }
+            if (user.isActive() && !request.isActive()) tokenRevocationService.revokeAllSessions(user.getId());
             user.setActive(request.isActive());
         }
         if (request.firstName() != null) user.setFirstName(request.firstName().trim());
@@ -112,6 +114,7 @@ public class UserService {
             throw new InvalidCurrentPasswordException();
         }
         user.setPasswordHash(passwordEncoder.encode(newPassword));
+        tokenRevocationService.revokeAllSessions(user.getId());
     }
 
     @Transactional
@@ -120,7 +123,11 @@ public class UserService {
         if (user.getRole() == Role.SUPER_ADMIN) {
             throw new AccessDeniedException("Роль супер-админа изменить нельзя");
         }
-        user.setRole(isAdmin ? Role.ADMIN : Role.USER);
+        Role newRole = isAdmin ? Role.ADMIN : Role.USER;
+        if (user.getRole() != newRole) {
+            user.setRole(newRole);
+            tokenRevocationService.revokeAccessTokens(user.getId());
+        }
         return user;
     }
 
@@ -129,6 +136,7 @@ public class UserService {
         User user = getById(id);
         checkCanManage(actor, user);
         user.setPasswordHash(passwordEncoder.encode(password));
+        tokenRevocationService.revokeAllSessions(user.getId());
     }
 
     @Transactional
@@ -137,6 +145,7 @@ public class UserService {
         if (user.getRole() == Role.SUPER_ADMIN) throw new AccessDeniedException("Супер-админа удалить нельзя");
         checkCanManage(actor, user);
         userRepository.delete(user);
+        tokenRevocationService.revokeAccessTokens(user.getId());
     }
 
     private void checkCanManage(CurrentUser actor, User target) {

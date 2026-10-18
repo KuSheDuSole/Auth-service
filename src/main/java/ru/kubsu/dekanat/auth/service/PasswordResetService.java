@@ -28,6 +28,7 @@ public class PasswordResetService {
     private final PasswordResetTokenRepository tokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final MailService mailService;
+    private final TokenRevocationService tokenRevocationService;
     private final PasswordResetProperties properties;
 
     @Transactional
@@ -69,6 +70,7 @@ public class PasswordResetService {
 
         tokenRepository.deleteAllByUser(user);
         user.setPasswordHash(passwordEncoder.encode(newPassword));
+        tokenRevocationService.revokeAllSessions(user.getId());
     }
 
 }

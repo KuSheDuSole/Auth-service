@@ -48,6 +48,9 @@ app:
   email-change:
     code-ttl: 15m
     max-attempts: 5
+  cleanup:
+    cron: "0 0 3 * * *"
+    zone: Europe/Moscow
   admin:
     email: ${ADMIN_EMAIL}
     password: ${ADMIN_PASSWORD}
