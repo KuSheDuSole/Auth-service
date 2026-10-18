@@ -19,8 +19,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import ru.kubsu.dekanat.auth.dto.ChangeEmailRequest;
 import ru.kubsu.dekanat.auth.dto.ChangePasswordRequest;
 import ru.kubsu.dekanat.auth.dto.ChangeRoleRequest;
+import ru.kubsu.dekanat.auth.dto.ConfirmEmailChangeRequest;
 import ru.kubsu.dekanat.auth.dto.CreateUserRequest;
 import ru.kubsu.dekanat.auth.dto.EmployeeResponse;
 import ru.kubsu.dekanat.auth.dto.PageResponse;
@@ -30,6 +32,7 @@ import ru.kubsu.dekanat.auth.dto.UpdateUserRequest;
 import ru.kubsu.dekanat.auth.dto.UserResponse;
 import ru.kubsu.dekanat.auth.entity.User;
 import ru.kubsu.dekanat.auth.security.CurrentUser;
+import ru.kubsu.dekanat.auth.service.EmailChangeService;
 import ru.kubsu.dekanat.auth.service.UserService;
 
 @RestController
@@ -38,6 +41,7 @@ import ru.kubsu.dekanat.auth.service.UserService;
 public class UserController {
 
     private final UserService userService;
+    private final EmailChangeService emailChangeService;
 
     @GetMapping("/me")
     public UserResponse me(@AuthenticationPrincipal CurrentUser currentUser) {
@@ -57,6 +61,20 @@ public class UserController {
     public void changeMyPassword(@Valid @RequestBody ChangePasswordRequest request,
                                  @AuthenticationPrincipal CurrentUser currentUser) {
         userService.changeOwnPassword(currentUser.id(), request.currentPassword(), request.newPassword());
+    }
+
+    @PostMapping("/me/email")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void requestEmailChange(@Valid @RequestBody ChangeEmailRequest request,
+                                   @AuthenticationPrincipal CurrentUser currentUser) {
+        emailChangeService.requestChange(currentUser.id(), request.newEmail(), request.currentPassword());
+    }
+
+    @PostMapping("/me/email/confirm")
+    public UserResponse confirmEmailChange(@Valid @RequestBody ConfirmEmailChangeRequest request,
+                                           @AuthenticationPrincipal CurrentUser currentUser) {
+        User user = emailChangeService.confirmChange(currentUser.id(), request.code());
+        return new UserResponse(EmployeeResponse.from(user));
     }
 
     @GetMapping
