@@ -1,16 +1,22 @@
 package ru.kubsu.dekanat.auth.controller;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import ru.kubsu.dekanat.auth.dto.CreateUserRequest;
 import ru.kubsu.dekanat.auth.dto.EmployeeResponse;
 import ru.kubsu.dekanat.auth.dto.PageResponse;
 import ru.kubsu.dekanat.auth.dto.UserResponse;
@@ -44,6 +50,14 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     public UserResponse get(@PathVariable Long id) {
         User user = userService.getById(id);
+        return new UserResponse(EmployeeResponse.from(user));
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasRole('ADMIN')")
+    public UserResponse create(@Valid @RequestBody CreateUserRequest request) {
+        User user = userService.create(request);
         return new UserResponse(EmployeeResponse.from(user));
     }
 
