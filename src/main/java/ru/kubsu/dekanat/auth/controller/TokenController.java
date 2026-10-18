@@ -48,7 +48,9 @@ public class TokenController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout() {
+    public ResponseEntity<Void> logout(
+            @CookieValue(name = RefreshTokenCookie.NAME, required = false) String refreshToken) {
+        tokenService.logout(refreshToken);
         return ResponseEntity.noContent()
                 .header(HttpHeaders.SET_COOKIE, RefreshTokenCookie.clear().toString())
                 .build();
