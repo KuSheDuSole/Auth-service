@@ -105,6 +105,21 @@ public class UserService {
         return user;
     }
 
+    @Transactional
+    public void setPassword(Long id, String password, CurrentUser actor) {
+        User user = getById(id);
+        checkCanManage(actor, user);
+        user.setPasswordHash(passwordEncoder.encode(password));
+    }
+
+    @Transactional
+    public void delete(Long id, CurrentUser actor) {
+        User user = getById(id);
+        if (user.getRole() == Role.SUPER_ADMIN) throw new AccessDeniedException("Супер-админа удалить нельзя");
+        checkCanManage(actor, user);
+        userRepository.delete(user);
+    }
+
     private void checkCanManage(CurrentUser actor, User target) {
         boolean allowed = switch (target.getRole()) {
             case USER -> true;

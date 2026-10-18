@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,6 +23,7 @@ import ru.kubsu.dekanat.auth.dto.ChangeRoleRequest;
 import ru.kubsu.dekanat.auth.dto.CreateUserRequest;
 import ru.kubsu.dekanat.auth.dto.EmployeeResponse;
 import ru.kubsu.dekanat.auth.dto.PageResponse;
+import ru.kubsu.dekanat.auth.dto.SetPasswordRequest;
 import ru.kubsu.dekanat.auth.dto.UpdateUserRequest;
 import ru.kubsu.dekanat.auth.dto.UserResponse;
 import ru.kubsu.dekanat.auth.entity.User;
@@ -72,6 +74,21 @@ public class UserController {
                                @AuthenticationPrincipal CurrentUser currentUser) {
         User user = userService.update(id, request, currentUser);
         return new UserResponse(EmployeeResponse.from(user));
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('ADMIN')")
+    public void delete(@PathVariable Long id, @AuthenticationPrincipal CurrentUser currentUser) {
+        userService.delete(id, currentUser);
+    }
+
+    @PutMapping("/{id}/password")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('ADMIN')")
+    public void setPassword(@PathVariable Long id, @Valid @RequestBody SetPasswordRequest request,
+                            @AuthenticationPrincipal CurrentUser currentUser) {
+        userService.setPassword(id, request.password(), currentUser);
     }
 
     @PutMapping("/{id}/role")
