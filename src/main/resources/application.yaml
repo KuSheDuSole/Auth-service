@@ -42,6 +42,7 @@ app:
     access-token-ttl: 15m
     refresh-token-ttl: 1d
     remember-me-refresh-token-ttl: 30d
+    mfa-token-ttl: 5m
   password-reset:
     url: ${FRONTEND_URL:http://localhost:5173}/reset-password
     token-ttl: 30m
@@ -51,6 +52,8 @@ app:
   totp:
     encryption-key: ${TOTP_ENCRYPTION_KEY}
     issuer: Деканат КубГУ
+    max-attempts: 5
+    lockout: 15m
   cleanup:
     cron: "0 0 3 * * *"
     zone: Europe/Moscow

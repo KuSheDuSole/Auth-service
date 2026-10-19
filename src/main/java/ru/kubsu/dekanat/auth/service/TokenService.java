@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.kubsu.dekanat.auth.config.JwtProperties;
 import ru.kubsu.dekanat.auth.entity.RefreshToken;
 import ru.kubsu.dekanat.auth.entity.User;
+import ru.kubsu.dekanat.auth.exception.InvalidMfaTokenException;
 import ru.kubsu.dekanat.auth.exception.InvalidRefreshTokenException;
 import ru.kubsu.dekanat.auth.repository.RefreshTokenRepository;
 import ru.kubsu.dekanat.auth.repository.UserRepository;
@@ -31,9 +32,12 @@ public class TokenService {
     public static final String TOKEN_TYPE_CLAIM = "token_type";
     public static final String ACCESS = "access";
     public static final String REFRESH = "refresh";
+    public static final String MFA = "mfa";
+    public static final String REMEMBER_ME_CLAIM = "remember_me";
 
     private final JwtEncoder jwtEncoder;
     private final JwtDecoder refreshTokenDecoder;
+    private final JwtDecoder mfaTokenDecoder;
     private final JwtProperties jwtProperties;
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
@@ -88,6 +92,37 @@ public class TokenService {
         }
     }
 
+    public String issueMfaToken(AppUserDetails user, boolean rememberMe) {
+        Instant now = Instant.now();
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .issuer(jwtProperties.issuer())
+                .subject(user.id().toString())
+                .id(UUID.randomUUID().toString())
+                .issuedAt(now)
+                .expiresAt(now.plus(jwtProperties.mfaTokenTtl()))
+                .claim(TOKEN_TYPE_CLAIM, MFA)
+                .claim(REMEMBER_ME_CLAIM, rememberMe)
+                .build();
+        return sign(claims);
+    }
+
+    @Transactional(readOnly = true)
+    public MfaChallenge parseMfaToken(String mfaToken) {
+        Jwt jwt;
+        try {
+            jwt = mfaTokenDecoder.decode(mfaToken);
+        } catch (JwtException e) {
+            throw new InvalidMfaTokenException();
+        }
+
+        AppUserDetails user = userRepository.findById(Long.valueOf(jwt.getSubject()))
+                .filter(User::isActive)
+                .map(AppUserDetails::from)
+                .orElseThrow(InvalidMfaTokenException::new);
+
+        return new MfaChallenge(user, Boolean.TRUE.equals(jwt.getClaimAsBoolean(REMEMBER_ME_CLAIM)));
+    }
+
     private String encode(AppUserDetails user, String tokenType, String jti, Instant now, Duration ttl) {
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer(jwtProperties.issuer())
@@ -98,6 +133,10 @@ public class TokenService {
                 .claim(ROLE_CLAIM, user.role().name())
                 .claim(TOKEN_TYPE_CLAIM, tokenType)
                 .build();
+        return sign(claims);
+    }
+
+    private String sign(JwtClaimsSet claims) {
         JwsHeader header = JwsHeader.with(SignatureAlgorithm.RS256).build();
         return jwtEncoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();
     }

@@ -12,6 +12,7 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -42,6 +43,12 @@ public class UserTotp {
     private boolean enabled;
 
     private Long lastUsedStep;
+
+    @ColumnDefault("0")
+    @Column(nullable = false)
+    private int failedAttempts;
+
+    private Instant lockedUntil;
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)

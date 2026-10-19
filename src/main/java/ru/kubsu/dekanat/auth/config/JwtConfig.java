@@ -23,10 +23,19 @@ public class JwtConfig {
 
     @Bean
     JwtDecoder refreshTokenDecoder(JwtProperties jwtProperties) {
+        return decoderForTokenType(jwtProperties, TokenService.REFRESH);
+    }
+
+    @Bean
+    JwtDecoder mfaTokenDecoder(JwtProperties jwtProperties) {
+        return decoderForTokenType(jwtProperties, TokenService.MFA);
+    }
+
+    private static JwtDecoder decoderForTokenType(JwtProperties jwtProperties, String tokenType) {
         NimbusJwtDecoder decoder = NimbusJwtDecoder.withPublicKey(jwtProperties.publicKey()).build();
         decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(
                 JwtValidators.createDefaultWithIssuer(jwtProperties.issuer()),
-                new JwtClaimValidator<String>(TokenService.TOKEN_TYPE_CLAIM, TokenService.REFRESH::equals)));
+                new JwtClaimValidator<String>(TokenService.TOKEN_TYPE_CLAIM, tokenType::equals)));
         return decoder;
     }
 

@@ -10,8 +10,10 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import ru.kubsu.dekanat.auth.exception.EmailAlreadyExistsException;
 import ru.kubsu.dekanat.auth.exception.InvalidConfirmationCodeException;
 import ru.kubsu.dekanat.auth.exception.InvalidCurrentPasswordException;
+import ru.kubsu.dekanat.auth.exception.InvalidMfaTokenException;
 import ru.kubsu.dekanat.auth.exception.InvalidRefreshTokenException;
 import ru.kubsu.dekanat.auth.exception.InvalidResetTokenException;
+import ru.kubsu.dekanat.auth.exception.TwoFactorLockedException;
 import ru.kubsu.dekanat.auth.exception.TwoFactorStateException;
 import ru.kubsu.dekanat.auth.exception.UserNotFoundException;
 
@@ -28,6 +30,16 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(InvalidRefreshTokenException.class)
     ProblemDetail handleInvalidRefreshToken(InvalidRefreshTokenException e) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, e.getMessage());
+    }
+
+    @ExceptionHandler(InvalidMfaTokenException.class)
+    ProblemDetail handleInvalidMfaToken(InvalidMfaTokenException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, e.getMessage());
+    }
+
+    @ExceptionHandler(TwoFactorLockedException.class)
+    ProblemDetail handleTwoFactorLocked(TwoFactorLockedException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.TOO_MANY_REQUESTS, e.getMessage());
     }
 
     // Бросается @PreAuthorize, когда у пользователя нет нужной роли

@@ -13,6 +13,7 @@ public record JwtProperties(
         String issuer,
         Duration accessTokenTtl,
         Duration refreshTokenTtl,
-        Duration rememberMeRefreshTokenTtl
+        Duration rememberMeRefreshTokenTtl,
+        Duration mfaTokenTtl
 ) {
 }
