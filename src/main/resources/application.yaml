@@ -54,6 +54,15 @@ app:
     issuer: Деканат КубГУ
     max-attempts: 5
     lockout: 15m
+  rate-limit:
+    password-reset:
+      cooldown: 60s
+      max-requests: 5
+      window: 1h
+    email-change:
+      cooldown: 60s
+      max-requests: 5
+      window: 1h
   cleanup:
     cron: "0 0 3 * * *"
     zone: Europe/Moscow
