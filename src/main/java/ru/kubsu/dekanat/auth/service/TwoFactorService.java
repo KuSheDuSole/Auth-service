@@ -89,6 +89,21 @@ public class TwoFactorService {
                         + "Если это сделали не вы, срочно смените пароль и обратитесь к администратору.");
     }
 
+    @Transactional
+    public void reset(User user) {
+        UserTotp totp = userTotpRepository.findById(user.getId())
+                .filter(UserTotp::isEnabled)
+                .orElseThrow(() -> new TwoFactorStateException("Двухфакторная аутентификация не включена"));
+        userTotpRepository.delete(totp);
+
+        mailService.send(user.getEmail(), "Двухфакторная аутентификация сброшена",
+                "Здравствуйте, " + user.getFirstName() + "!\n\n"
+                        + "Администратор сбросил двухфакторную аутентификацию для вашей учётной записи "
+                        + "в системе «Деканат». Все активные сеансы завершены.\n"
+                        + "Войдите по паролю и при желании подключите её заново в профиле.\n"
+                        + "Если вы не обращались к администратору, срочно свяжитесь с ним.");
+    }
+
     @Transactional(noRollbackFor = InvalidConfirmationCodeException.class)
     public void verifyLogin(Long userId, String code) {
         UserTotp totp = userTotpRepository.findById(userId)

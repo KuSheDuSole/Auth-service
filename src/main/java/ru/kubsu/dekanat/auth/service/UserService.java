@@ -30,6 +30,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenRevocationService tokenRevocationService;
+    private final TwoFactorService twoFactorService;
 
     @Transactional(readOnly = true)
     public User getById(Long id) {
@@ -146,6 +147,17 @@ public class UserService {
         checkCanManage(actor, user);
         userRepository.delete(user);
         tokenRevocationService.revokeAccessTokens(user.getId());
+    }
+
+    @Transactional
+    public void resetTwoFactor(Long id, CurrentUser actor) {
+        if (id.equals(actor.id())) {
+            throw new AccessDeniedException("Свою двухфакторную аутентификацию отключайте в профиле");
+        }
+        User user = getById(id);
+        checkCanManage(actor, user);
+        twoFactorService.reset(user);
+        tokenRevocationService.revokeAllSessions(user.getId());
     }
 
     private void checkCanManage(CurrentUser actor, User target) {

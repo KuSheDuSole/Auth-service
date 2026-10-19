@@ -125,6 +125,13 @@ public class UserController {
         userService.setPassword(id, request.password(), currentUser);
     }
 
+    @DeleteMapping("/{id}/2fa")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('ADMIN')")
+    public void resetTwoFactor(@PathVariable Long id, @AuthenticationPrincipal CurrentUser currentUser) {
+        userService.resetTwoFactor(id, currentUser);
+    }
+
     @PutMapping("/{id}/role")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     public UserResponse changeRole(@PathVariable Long id, @Valid @RequestBody ChangeRoleRequest request) {
