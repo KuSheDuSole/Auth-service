@@ -7,11 +7,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.kubsu.dekanat.auth.config.EmailChangeProperties;
+import ru.kubsu.dekanat.auth.config.RateLimitProperties;
 import ru.kubsu.dekanat.auth.entity.EmailChangeCode;
 import ru.kubsu.dekanat.auth.entity.User;
 import ru.kubsu.dekanat.auth.exception.EmailAlreadyExistsException;
 import ru.kubsu.dekanat.auth.exception.InvalidConfirmationCodeException;
 import ru.kubsu.dekanat.auth.exception.InvalidCurrentPasswordException;
+import ru.kubsu.dekanat.auth.exception.RateLimitExceededException;
 import ru.kubsu.dekanat.auth.exception.UserNotFoundException;
 import ru.kubsu.dekanat.auth.repository.EmailChangeCodeRepository;
 import ru.kubsu.dekanat.auth.repository.UserRepository;
@@ -31,6 +33,8 @@ public class EmailChangeService {
     private final PasswordEncoder passwordEncoder;
     private final MailService mailService;
     private final EmailChangeProperties properties;
+    private final RateLimitService rateLimitService;
+    private final RateLimitProperties rateLimitProperties;
 
     @Transactional
     public void requestChange(Long userId, String newEmail, String currentPassword) {
@@ -41,6 +45,9 @@ public class EmailChangeService {
 
         String email = newEmail.trim().toLowerCase();
         if (userRepository.existsByEmail(email)) throw new EmailAlreadyExistsException(email);
+
+        RateLimitResult limit = rateLimitService.tryAcquire("email-change", userId.toString(), rateLimitProperties.emailChange());
+        if (!limit.allowed()) throw new RateLimitExceededException(limit.retryAfter());
 
         codeRepository.deleteAllByUser(user);
 

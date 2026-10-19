@@ -6,6 +6,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.kubsu.dekanat.auth.config.PasswordResetProperties;
+import ru.kubsu.dekanat.auth.config.RateLimitProperties;
 import ru.kubsu.dekanat.auth.entity.PasswordResetToken;
 import ru.kubsu.dekanat.auth.entity.User;
 import ru.kubsu.dekanat.auth.exception.InvalidResetTokenException;
@@ -30,10 +31,17 @@ public class PasswordResetService {
     private final MailService mailService;
     private final TokenRevocationService tokenRevocationService;
     private final PasswordResetProperties properties;
+    private final RateLimitService rateLimitService;
+    private final RateLimitProperties rateLimitProperties;
 
     @Transactional
     public void requestReset(String email) {
-        Optional<User> found = userRepository.findByEmail(email.trim().toLowerCase()).filter(User::isActive);
+        String normalizedEmail = email.trim().toLowerCase();
+        if (!rateLimitService.tryAcquire("password-reset", normalizedEmail, rateLimitProperties.passwordReset()).allowed()) {
+            return;
+        }
+
+        Optional<User> found = userRepository.findByEmail(normalizedEmail).filter(User::isActive);
         if (found.isEmpty()) return;
         User user = found.get();
 

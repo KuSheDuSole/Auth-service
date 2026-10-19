@@ -1,7 +1,9 @@
 package ru.kubsu.dekanat.auth.controller;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -13,6 +15,7 @@ import ru.kubsu.dekanat.auth.exception.InvalidCurrentPasswordException;
 import ru.kubsu.dekanat.auth.exception.InvalidMfaTokenException;
 import ru.kubsu.dekanat.auth.exception.InvalidRefreshTokenException;
 import ru.kubsu.dekanat.auth.exception.InvalidResetTokenException;
+import ru.kubsu.dekanat.auth.exception.RateLimitExceededException;
 import ru.kubsu.dekanat.auth.exception.TwoFactorLockedException;
 import ru.kubsu.dekanat.auth.exception.TwoFactorStateException;
 import ru.kubsu.dekanat.auth.exception.UserNotFoundException;
@@ -40,6 +43,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(TwoFactorLockedException.class)
     ProblemDetail handleTwoFactorLocked(TwoFactorLockedException e) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.TOO_MANY_REQUESTS, e.getMessage());
+    }
+
+    @ExceptionHandler(RateLimitExceededException.class)
+    ResponseEntity<ProblemDetail> handleRateLimitExceeded(RateLimitExceededException e) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header(HttpHeaders.RETRY_AFTER, String.valueOf(e.getRetryAfter().toSeconds()))
+                .body(ProblemDetail.forStatusAndDetail(HttpStatus.TOO_MANY_REQUESTS, e.getMessage()));
     }
 
     // Бросается @PreAuthorize, когда у пользователя нет нужной роли
