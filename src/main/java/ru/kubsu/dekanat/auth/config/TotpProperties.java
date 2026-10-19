@@ -4,6 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties("app.totp")
 public record TotpProperties(
-        String encryptionKey
+        String encryptionKey,
+        String issuer
 ) {
 }

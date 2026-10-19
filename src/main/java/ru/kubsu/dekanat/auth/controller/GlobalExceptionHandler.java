@@ -12,6 +12,7 @@ import ru.kubsu.dekanat.auth.exception.InvalidConfirmationCodeException;
 import ru.kubsu.dekanat.auth.exception.InvalidCurrentPasswordException;
 import ru.kubsu.dekanat.auth.exception.InvalidRefreshTokenException;
 import ru.kubsu.dekanat.auth.exception.InvalidResetTokenException;
+import ru.kubsu.dekanat.auth.exception.TwoFactorStateException;
 import ru.kubsu.dekanat.auth.exception.UserNotFoundException;
 
 
@@ -53,6 +54,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(InvalidConfirmationCodeException.class)
     ProblemDetail handleInvalidConfirmationCode(InvalidConfirmationCodeException e) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.getMessage());
+    }
+
+    @ExceptionHandler(TwoFactorStateException.class)
+    ProblemDetail handleTwoFactorState(TwoFactorStateException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
     }
 
     @ExceptionHandler(EmailAlreadyExistsException.class)
