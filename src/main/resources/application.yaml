@@ -48,6 +48,8 @@ app:
   email-change:
     code-ttl: 15m
     max-attempts: 5
+  totp:
+    encryption-key: ${TOTP_ENCRYPTION_KEY}
   cleanup:
     cron: "0 0 3 * * *"
     zone: Europe/Moscow
