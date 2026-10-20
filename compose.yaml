@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:17.5
+    environment:
+      POSTGRES_DB: dekanat
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      AUTH_SVC_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+      - dekanat-db-data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7.4
+    ports:
+      - "6379:6379"
+
+volumes:
+  dekanat-db-data:

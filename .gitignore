@@ -31,3 +31,9 @@ build/
 
 ### VS Code ###
 .vscode/
+
+CLAUDE.md
+.env
+keys/
+FRONTEND_API.md
+SESSION_COMMITS.md
